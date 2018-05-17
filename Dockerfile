@@ -2,10 +2,9 @@ FROM alpine:3.7
 
 LABEL maintainer="guerlab <master@guerlab.net>"
 
-ENV NGINX_VERSION 1.13.12
+ENV NGINX_VERSION 1.14.0
 
-RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
-	&& CONFIG="\
+RUN CONFIG="\
 		--prefix=/etc/nginx \
 		--sbin-path=/usr/sbin/nginx \
 		--modules-path=/usr/lib/nginx/modules \
@@ -52,6 +51,12 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	" \
 	&& addgroup -S nginx \
 	&& adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
+	&& echo -e "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main\nhttps://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/community" > /etc/apk/repositories \
+	&& apk add --no-cache \
+		bash \
+		curl \
+		tree \
+		tzdata \
 	&& apk add --no-cache --virtual .build-deps \
 		gcc \
 		libc-dev \
@@ -60,27 +65,13 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 		pcre-dev \
 		zlib-dev \
 		linux-headers \
-		curl \
 		gnupg \
 		libxslt-dev \
 		gd-dev \
 		geoip-dev \
+	&& cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+	&& echo -ne "Alpine Linux 3.7 image. (`uname -rsv`)\n" >> /root/.built \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
-	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc  -o nginx.tar.gz.asc \
-	&& export GNUPGHOME="$(mktemp -d)" \
-	&& found=''; \
-	for server in \
-		ha.pool.sks-keyservers.net \
-		hkp://keyserver.ubuntu.com:80 \
-		hkp://p80.pool.sks-keyservers.net:80 \
-		pgp.mit.edu \
-	; do \
-		echo "Fetching GPG key $GPG_KEYS from $server"; \
-		gpg --keyserver "$server" --keyserver-options timeout=10 --recv-keys "$GPG_KEYS" && found=yes && break; \
-	done; \
-	test -z "$found" && echo >&2 "error: failed to fetch GPG key $GPG_KEYS" && exit 1; \
-	gpg --batch --verify nginx.tar.gz.asc nginx.tar.gz \
-	&& rm -rf "$GNUPGHOME" nginx.tar.gz.asc \
 	&& mkdir -p /usr/src \
 	&& tar -zxC /usr/src -f nginx.tar.gz \
 	&& rm nginx.tar.gz \
@@ -96,7 +87,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& make -j$(getconf _NPROCESSORS_ONLN) \
 	&& make install \
 	&& rm -rf /etc/nginx/html/ \
-	&& mkdir /etc/nginx/vhosts/ \
+	&& mkdir /etc/nginx/conf.d/ \
 	&& mkdir -p /usr/share/nginx/html/ \
 	&& install -m644 html/index.html /usr/share/nginx/html/ \
 	&& install -m644 html/50x.html /usr/share/nginx/html/ \
@@ -128,21 +119,21 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& apk del .gettext \
 	&& mv /tmp/envsubst /usr/local/bin/ \
 	\
-	# Bring in tzdata so users could set the timezones through the environment
-	# variables
-	&& apk add --no-cache tzdata \
-	\
 	# forward request and error logs to docker log collector
 	&& ln -sf /dev/stdout /var/log/nginx/access.log \
 	&& ln -sf /dev/stderr /var/log/nginx/error.log
 
+COPY proxy.conf /etc/nginx/proxy.conf
 COPY nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
 EXPOSE 443
 
-VOLUME ["/etc/nginx/vhosts"]
+VOLUME ["/etc/nginx/conf.d"]
 
 STOPSIGNAL SIGTERM
+
+# Setup the cron job.
+RUN echo "0 0 * * * root nginx -s reload" >> /etc/crontab
 
 CMD ["nginx"]
