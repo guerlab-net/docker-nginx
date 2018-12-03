@@ -2,7 +2,7 @@ FROM alpine:3.7
 
 LABEL maintainer="guerlab <master@guerlab.net>"
 
-ENV NGINX_VERSION 1.14.0
+ENV NGINX_VERSION 1.14.1
 
 RUN CONFIG="\
 		--prefix=/etc/nginx \
@@ -57,6 +57,7 @@ RUN CONFIG="\
 		curl \
 		tree \
 		tzdata \
+	    vim \
 	&& apk add --no-cache --virtual .build-deps \
 		gcc \
 		libc-dev \
@@ -68,7 +69,7 @@ RUN CONFIG="\
 		gnupg \
 		libxslt-dev \
 		gd-dev \
-		geoip-dev \
+		geoip-dev \   
 	&& cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
 	&& echo -ne "Alpine Linux 3.7 image. (`uname -rsv`)\n" >> /root/.built \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
@@ -121,19 +122,24 @@ RUN CONFIG="\
 	\
 	# forward request and error logs to docker log collector
 	&& ln -sf /dev/stdout /var/log/nginx/access.log \
-	&& ln -sf /dev/stderr /var/log/nginx/error.log
+	&& ln -sf /dev/stderr /var/log/nginx/error.log \
+	# add minutely path to crontab
+    && mkdir /etc/periodic/minutely \
+	&& echo "*	*	*	*	*	run-parts /etc/periodic/minutely" >> /var/spool/cron/crontabs/root
+
+#set nginx reload cron wieh daily
+COPY nginx_reload.sh /etc/periodic/daily/nginx_reload
+RUN chmod a+x /etc/periodic/daily/nginx_reload
 
 COPY proxy.conf /etc/nginx/proxy.conf
 COPY nginx.conf /etc/nginx/nginx.conf
 
-EXPOSE 80
-EXPOSE 443
+EXPOSE 80 443
 
 VOLUME ["/etc/nginx/conf.d"]
 
+WORKDIR /etc/nginx/conf.d
+
 STOPSIGNAL SIGTERM
 
-# Setup the cron job.
-RUN echo "0 0 * * * root nginx -s reload" >> /etc/crontab
-
-CMD ["nginx"]
+CMD crond && nginx
