@@ -127,10 +127,6 @@ RUN CONFIG="\
     && mkdir /etc/periodic/minutely \
 	&& echo "*	*	*	*	*	run-parts /etc/periodic/minutely" >> /var/spool/cron/crontabs/root
 
-#set nginx reload cron wieh daily
-COPY nginx_reload.sh /etc/periodic/daily/nginx_reload
-RUN chmod a+x /etc/periodic/daily/nginx_reload
-
 COPY proxy.conf /etc/nginx/proxy.conf
 COPY nginx.conf /etc/nginx/nginx.conf
 
@@ -142,4 +138,4 @@ WORKDIR /etc/nginx/conf.d
 
 STOPSIGNAL SIGTERM
 
-CMD crond && nginx
+CMD ["nginx", "-g", "daemon off;"]
