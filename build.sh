@@ -1,5 +1,5 @@
 #!/bin/bash
-nginxverson="2.1"
+nginxverson="3.0"
 
 docker build -t guerlab/nginx ./base
 docker tag guerlab/nginx guerlab/nginx:${nginxverson}

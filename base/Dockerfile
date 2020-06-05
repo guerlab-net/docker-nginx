@@ -1,15 +1,16 @@
-FROM alpine:3.7
+FROM alpine:3.11
 
 LABEL maintainer="guerlab <master@guerlab.net>"
 
-ENV NGINX_VERSION 1.14.1
+ENV NGINX_VERSION 1.18.0
+ENV ALPINE_VERSION 3.11
 
 RUN CONFIG="\
 		--prefix=/etc/nginx \
 		--sbin-path=/usr/sbin/nginx \
 		--modules-path=/usr/lib/nginx/modules \
 		--conf-path=/etc/nginx/nginx.conf \
-		--error-log-path=/var/log/nginx/error.log \   
+		--error-log-path=/var/log/nginx/error.log \
 		--http-log-path=/var/log/nginx/access.log \
 		--pid-path=/var/run/nginx.pid \
 		--lock-path=/var/run/nginx.lock \
@@ -51,7 +52,7 @@ RUN CONFIG="\
 	" \
 	&& addgroup -S nginx \
 	&& adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
-	&& echo -e "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main\nhttps://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/community" > /etc/apk/repositories \
+	&& echo -e "https://mirror.tuna.tsinghua.edu.cn/alpine/v${ALPINE_VERSION}/main\nhttps://mirror.tuna.tsinghua.edu.cn/alpine/v${ALPINE_VERSION}/community" > /etc/apk/repositories \
 	&& apk add --no-cache \
 		bash \
 		curl \
@@ -69,9 +70,9 @@ RUN CONFIG="\
 		gnupg \
 		libxslt-dev \
 		gd-dev \
-		geoip-dev \   
+		geoip-dev \
 	&& cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-	&& echo -ne "Alpine Linux 3.7 image. (`uname -rsv`)\n" >> /root/.built \
+	&& echo -ne "Alpine Linux ${ALPINE_VERSION} image. (`uname -rsv`)\n" >> /root/.built \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
 	&& mkdir -p /usr/src \
 	&& tar -zxC /usr/src -f nginx.tar.gz \
