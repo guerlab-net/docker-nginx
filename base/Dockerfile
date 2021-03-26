@@ -128,15 +128,17 @@ RUN CONFIG="\
     && mkdir /etc/periodic/minutely \
 	&& echo "*	*	*	*	*	run-parts /etc/periodic/minutely" >> /var/spool/cron/crontabs/root
 
+RUN mkdir /etc/nginx/http/ && mkdir /etc/nginx/stream/
 COPY proxy.conf /etc/nginx/proxy.conf
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
+COPY start.sh /start.sh
 
 EXPOSE 80 443
 
-VOLUME ["/etc/nginx/conf.d"]
+VOLUME ["/etc/nginx/http"]
 
-WORKDIR /etc/nginx/conf.d
+WORKDIR /etc/nginx/http
 
 STOPSIGNAL SIGTERM
 
-CMD nginx
+CMD ["sh", "/start.sh"]
