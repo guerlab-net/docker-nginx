@@ -1,5 +1,5 @@
 #!/bin/bash
-version="4.0"
+version="4.1"
 
 docker build -t guerlab/nginx ./base
 docker tag guerlab/nginx guerlab/nginx:${version}
