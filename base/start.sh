@@ -4,4 +4,5 @@ if [ "$NAMESERVER" == "" ]; then
 fi
 
 envsubst '$NAMESERVER' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+
 nginx
