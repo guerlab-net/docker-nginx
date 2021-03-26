@@ -1,10 +1,10 @@
 #!/bin/bash
-nginxverson="4.0"
+version="4.0"
 
 docker build -t guerlab/nginx ./base
-docker tag guerlab/nginx guerlab/nginx:${nginxverson}
+docker tag guerlab/nginx guerlab/nginx:${version}
 
 docker build -t guerlab/nginx:crond ./crond
-docker tag guerlab/nginx:crond guerlab/nginx:${nginxverson}-crond
+docker tag guerlab/nginx:latest-crond guerlab/nginx:${version}-crond
 
 docker push guerlab/nginx
