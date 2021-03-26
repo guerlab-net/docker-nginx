@@ -1,7 +1,7 @@
 # docker-nginx
 
 #### 项目介绍
-基于alpine 3.7版本构建的nginx镜像，默认采用UTC+8时区
+基于alpine 3.11版本构建的nginx镜像，默认采用UTC+8时区
 
 #### git仓库目录说明
 |目录|说明|
@@ -12,5 +12,6 @@
 #### 容器目录映射
 |目录|说明|
 |:--|--|
-|/etc/nginx/conf.d|nginx配置目录|
+|/etc/nginx/http|http配置目录|
+|/etc/nginx/stream|stream配置目录|
 |/etc/periodic|计划任务配置目录|
