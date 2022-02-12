@@ -1,7 +1,7 @@
 #!/bin/bash
-version="5.0"
+version="1.20.2"
 
-docker build -t guerlab/nginx ./base
+docker build -t guerlab/nginx --build-arg nginx_source_version=${version} ./base
 docker tag guerlab/nginx guerlab/nginx:${version}
 
 docker build -t guerlab/nginx:latest-crond ./crond

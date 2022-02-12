@@ -2,7 +2,11 @@ FROM alpine:3.13
 
 LABEL maintainer="guerlab <master@guerlab.net>"
 
-ENV NGINX_VERSION 1.20.0
+ARG nginx_source_version
+
+ADD module/echo-nginx-module /usr/src/echo-nginx-module
+
+ENV NGINX_VERSION ${nginx_source_version}
 ENV ALPINE_VERSION 3.13
 
 RUN CONFIG="\
@@ -49,6 +53,7 @@ RUN CONFIG="\
 		--with-stream_realip_module \
 		--with-stream_ssl_module \
 		--with-stream_ssl_preread_module \
+        --add-dynamic-module=/usr/src/echo-nginx-module \
 	" \
 	&& addgroup -S nginx \
 	&& adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
@@ -81,6 +86,7 @@ RUN CONFIG="\
 	&& ./configure $CONFIG --with-debug \
 	&& make -j$(getconf _NPROCESSORS_ONLN) \
 	&& mv objs/nginx objs/nginx-debug \
+	&& mv objs/ngx_http_echo_module.so objs/ngx_http_echo_module-debug.so \
 	&& mv objs/ngx_http_xslt_filter_module.so objs/ngx_http_xslt_filter_module-debug.so \
 	&& mv objs/ngx_http_image_filter_module.so objs/ngx_http_image_filter_module-debug.so \
 	&& mv objs/ngx_http_geoip_module.so objs/ngx_http_geoip_module-debug.so \
@@ -94,6 +100,7 @@ RUN CONFIG="\
 	&& install -m644 html/index.html /usr/share/nginx/html/ \
 	&& install -m644 html/50x.html /usr/share/nginx/html/ \
 	&& install -m755 objs/nginx-debug /usr/sbin/nginx-debug \
+	&& install -m755 objs/ngx_http_echo_module-debug.so /usr/lib/nginx/modules/ngx_http_echo_module-debug.so \
 	&& install -m755 objs/ngx_http_xslt_filter_module-debug.so /usr/lib/nginx/modules/ngx_http_xslt_filter_module-debug.so \
 	&& install -m755 objs/ngx_http_image_filter_module-debug.so /usr/lib/nginx/modules/ngx_http_image_filter_module-debug.so \
 	&& install -m755 objs/ngx_http_geoip_module-debug.so /usr/lib/nginx/modules/ngx_http_geoip_module-debug.so \
@@ -132,6 +139,7 @@ RUN mkdir /etc/nginx/http/ && mkdir /etc/nginx/stream/
 COPY proxy.conf /etc/nginx/proxy.conf
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY start.sh /start.sh
+COPY http/default.conf /etc/nginx/http/default.conf
 
 EXPOSE 80 443
 

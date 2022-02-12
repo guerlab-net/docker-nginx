@@ -3,6 +3,7 @@ worker_processes  1;
 
 daemon off;
 
+load_module /etc/nginx/modules/ngx_http_echo_module.so;
 load_module /etc/nginx/modules/ngx_http_geoip_module.so;
 load_module /etc/nginx/modules/ngx_http_image_filter_module.so;
 load_module /etc/nginx/modules/ngx_http_xslt_filter_module.so;

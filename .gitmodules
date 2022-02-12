@@ -1,0 +1,3 @@
+[submodule "base/module/echo-nginx-module"]
+	path = base/module/echo-nginx-module
+	url = https://github.com/openresty/echo-nginx-module.git
